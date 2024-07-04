@@ -30,9 +30,10 @@ class PainterPage extends ConsumerWidget {
                 child: GestureDetector(
                   onTapDown: (details) {
                     if (lines.isNotEmpty) {
+                      final currentCoordinate = details.globalPosition;
                       final currentLine = LineEntity(
                         point1: coordinates.last,
-                        point2: details.globalPosition,
+                        point2: currentCoordinate,
                       );
 
                       final isEnoughDegrees = lineService.checkAngle(
@@ -45,9 +46,18 @@ class PainterPage extends ConsumerWidget {
                         lines: lines,
                       );
 
+                      final isClose = lineService.isNearFirstPoint(
+                        firstPoint: coordinates.first,
+                        currentPoint: currentCoordinate,
+                      );
+
                       if (isEnoughDegrees && !isOverlap) {
                         ref.read(coordinatesProvider.notifier).addCoordinate(
-                              details.globalPosition,
+                              currentCoordinate,
+                            );
+                      } else if (isClose) {
+                        ref.read(coordinatesProvider.notifier).addCoordinate(
+                              coordinates.first,
                             );
                       }
                     } else {

@@ -1,8 +1,34 @@
 import 'dart:math';
 
+import 'package:flutter/material.dart';
 import 'package:polygon_painter/entity/line_entity.dart';
 
 class LineService {
+  bool isNearFirstPoint({
+    required Offset firstPoint,
+    required Offset currentPoint,
+  }) {
+    // Координаты первой точки
+    double x1 = firstPoint.dx;
+    double y1 = firstPoint.dy;
+
+    // Координаты второй точки
+    double x2 = currentPoint.dx;
+    double y2 = currentPoint.dy;
+
+    // Вычисление расстояния
+    double distance = sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2));
+
+    // Вывод результата
+    print('Расстояние между точками: ${distance}');
+
+    if (distance < 20) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   bool checkAngle({
     required LineEntity firstLine,
     required LineEntity secondLine,
@@ -144,6 +170,8 @@ class LineService {
         }
       }
     }
+
+    print('ОТРЕЗКИ НЕ ПЕРЕСЕКАЮТСЯ.');
 
     return false;
   }
