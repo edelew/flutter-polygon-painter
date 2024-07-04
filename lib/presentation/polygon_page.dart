@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:polygon_painter/entity/line_entity.dart';
 import 'package:polygon_painter/providers/coordonates_provider/coordonates_provider.dart';
+import 'package:polygon_painter/providers/lines_provider/lines_provider.dart';
 import 'package:polygon_painter/service/line_service.dart';
 
 class PainterPage extends ConsumerWidget {
@@ -11,6 +13,8 @@ class PainterPage extends ConsumerWidget {
     final lineService = LineService();
 
     final coordinates = ref.watch(coordinatesProvider);
+    final lines = ref.watch(linesProvider);
+    print(lines);
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -25,9 +29,32 @@ class PainterPage extends ConsumerWidget {
                 height: constraints.constrainHeight(),
                 child: GestureDetector(
                   onTapDown: (details) {
-                    ref.read(coordinatesProvider.notifier).addCoordinate(
-                          details.globalPosition,
-                        );
+                    if (lines.isNotEmpty) {
+                      final currentLine = LineEntity(
+                        point1: coordinates.last,
+                        point2: details.globalPosition,
+                      );
+
+                      final isEnoughDegrees = lineService.checkAngle(
+                        firstLine: currentLine,
+                        secondLine: lines.last,
+                      );
+
+                      final isOverlap = lineService.checkLinesOverlap(
+                        currentLine: currentLine,
+                        lines: lines,
+                      );
+
+                      if (isEnoughDegrees && !isOverlap) {
+                        ref.read(coordinatesProvider.notifier).addCoordinate(
+                              details.globalPosition,
+                            );
+                      }
+                    } else {
+                      ref.read(coordinatesProvider.notifier).addCoordinate(
+                            details.globalPosition,
+                          );
+                    }
                     // if (coordinates.isEmpty) {
                     //   ref.read(coordinatesProvider.notifier).addCoordinate(
                     //         details.globalPosition,

@@ -1,6 +1,52 @@
+import 'dart:math';
+
 import 'package:polygon_painter/entity/line_entity.dart';
 
 class LineService {
+  bool checkAngle({
+    required LineEntity firstLine,
+    required LineEntity secondLine,
+  }) {
+    // Координаты точек первой прямой
+    double x1 = firstLine.point1.dx;
+    double y1 = firstLine.point1.dy;
+    double x2 = firstLine.point2.dx;
+    double y2 = firstLine.point2.dy;
+
+    // Координаты точек второй прямой
+    double x3 = secondLine.point1.dx;
+    double y3 = secondLine.point1.dy;
+    double x4 = secondLine.point2.dx;
+    double y4 = secondLine.point2.dy;
+
+    // Векторы направлений
+    double v1x = x2 - x1;
+    double v1y = y2 - y1;
+    double v2x = x4 - x3;
+    double v2y = y4 - y3;
+
+    // Скалярное произведение
+    double dotProduct = v1x * v2x + v1y * v2y;
+
+    // Длины векторов
+    double lengthV1 = sqrt(v1x * v1x + v1y * v1y);
+    double lengthV2 = sqrt(v2x * v2x + v2y * v2y);
+
+    // Угол между векторами в радианах
+    double angleRad = acos(dotProduct / (lengthV1 * lengthV2));
+
+    // Угол в градусах
+    double angleDeg = 180 - (angleRad * 180 / pi);
+
+    print('Угол между прямыми: ${angleDeg} градусов');
+
+    if (angleDeg > 10) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   bool checkLinesOverlap({
     required LineEntity currentLine,
     required List<LineEntity> lines,
@@ -11,6 +57,8 @@ class LineService {
     double x2 = currentLine.point2.dx;
     double y2 = currentLine.point2.dy;
 
+    lines.removeLast();
+
     for (var line in lines) {
       // Координаты точек второй прямой
       // double x3 = line.point1.dx;
@@ -18,15 +66,15 @@ class LineService {
       // double x4 = line.point2.dx;
       // double y4 = line.point2.dy;
 
-      double x3 = line.point1.dx + 10;
-      double y3 = line.point1.dy + 10;
-      double x4 = line.point2.dx + 10;
-      double y4 = line.point2.dy + 10;
+      double x3 = line.point1.dx + 12;
+      double y3 = line.point1.dy + 12;
+      double x4 = line.point2.dx + 12;
+      double y4 = line.point2.dy + 12;
 
-      double x5 = line.point1.dx - 10;
-      double y5 = line.point1.dy - 10;
-      double x6 = line.point2.dx - 10;
-      double y6 = line.point2.dy - 10;
+      double x5 = line.point1.dx - 12;
+      double y5 = line.point1.dy - 12;
+      double x6 = line.point2.dx - 12;
+      double y6 = line.point2.dy - 12;
 
       // Найдем параметры t и u
       double denominator1 = (x2 - x1) * (y4 - y3) - (y2 - y1) * (x4 - x3);
