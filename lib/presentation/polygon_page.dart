@@ -1,21 +1,16 @@
-import 'dart:ui' as ui;
-
 import 'package:flutter/material.dart';
-import 'package:polygon_painter/entity/line_entity.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:polygon_painter/providers/coordonates_provider/coordonates_provider.dart';
 import 'package:polygon_painter/service/line_service.dart';
 
-class PainterPage extends StatefulWidget {
+class PainterPage extends ConsumerWidget {
   const PainterPage({super.key});
 
   @override
-  State<PainterPage> createState() => _PainterPageState();
-}
-
-class _PainterPageState extends State<PainterPage> {
-  List<Offset> coordinates = [];
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final lineService = LineService();
+
+    final coordinates = ref.watch(coordinatesProvider);
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -30,44 +25,43 @@ class _PainterPageState extends State<PainterPage> {
                 height: constraints.constrainHeight(),
                 child: GestureDetector(
                   onTapDown: (details) {
-                    if (coordinates.isEmpty) {
-                      setState(() {
-                        print(details.globalPosition);
-                        coordinates.add(details.globalPosition);
-                      });
-                    } else {
-                      final List<LineEntity> lines = [];
-                      for (var i = 0; i < coordinates.length; i++) {
-                        if (i != 0) {
-                          lines.add(LineEntity(
-                            point1: coordinates[i - 1],
-                            point2: coordinates[i],
-                          ));
-                        }
-                      }
+                    ref.read(coordinatesProvider.notifier).addCoordinate(
+                          details.globalPosition,
+                        );
+                    // if (coordinates.isEmpty) {
+                    //   ref.read(coordinatesProvider.notifier).addCoordinate(
+                    //         details.globalPosition,
+                    //       );
+                    // }
+                    // else {
+                    //   final List<LineEntity> lines = [];
+                    //   for (var i = 0; i < coordinates.length; i++) {
+                    //     if (i != 0) {
+                    //       lines.add(LineEntity(
+                    //         point1: coordinates[i - 1],
+                    //         point2: coordinates[i],
+                    //       ));
+                    //     }
+                    //   }
 
-                      final currentLine = LineEntity(
-                        point1: coordinates.last,
-                        point2: details.globalPosition,
-                      );
+                    //   final currentLine = LineEntity(
+                    //     point1: coordinates.last,
+                    //     point2: details.globalPosition,
+                    //   );
 
-                      final isOverlap = lineService.checkLinesOverlap(
-                        currentLine: currentLine,
-                        lines: lines,
-                      );
+                    //   final isOverlap = lineService.checkLinesOverlap(
+                    //     currentLine: currentLine,
+                    //     lines: lines,
+                    //   );
 
-                      if (isOverlap == false) {
-                        setState(() {
-                          print(details.globalPosition);
-                          coordinates.add(details.globalPosition);
-                        });
-                      }
-                    }
+                    //   if (isOverlap == false) {
+                    //     setState(() {
+                    //       print(details.globalPosition);
+                    //       coordinates.add(details.globalPosition);
+                    //     });
+                    //   }
+                    // }
                   },
-                  // onForcePressStart: (details) => setState(() {
-                  //   print(details.globalPosition);
-                  //   coordinates.add(details.globalPosition);
-                  // }),
                   child: CustomPaint(
                     painter: PolygonPainter(
                       coordinates: coordinates,
@@ -106,30 +100,6 @@ class BackgroundPaint extends CustomPainter {
   }
 }
 
-class DotPaint extends CustomPainter {
-  DotPaint({
-    super.repaint,
-    required this.coordinates,
-  });
-
-  final Offset? coordinates;
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint1 = Paint()..color = const Color.fromRGBO(253, 253, 253, 1);
-    final paint2 = Paint()..color = const Color.fromRGBO(0, 152, 238, 1);
-
-    if (coordinates != null) {
-      canvas.drawCircle(coordinates!, 8, paint1);
-      canvas.drawCircle(coordinates!, 6, paint2);
-    }
-  }
-
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) {
-    return oldDelegate != this;
-  }
-}
-
 class PolygonPainter extends CustomPainter {
   PolygonPainter({
     super.repaint,
@@ -152,6 +122,7 @@ class PolygonPainter extends CustomPainter {
       }
     }
 
+    // рисуем кружочки
     for (var coordinate in coordinates) {
       canvas
         ..drawCircle(coordinate, 8, paint1)

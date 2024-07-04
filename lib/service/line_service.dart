@@ -11,8 +11,6 @@ class LineService {
     double x2 = currentLine.point2.dx;
     double y2 = currentLine.point2.dy;
 
-    bool result = false;
-
     for (var line in lines) {
       // Координаты точек второй прямой
       // double x3 = line.point1.dx;
