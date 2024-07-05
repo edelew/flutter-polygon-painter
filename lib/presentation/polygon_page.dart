@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:polygon_painter/entity/line_entity.dart';
-import 'package:polygon_painter/providers/coordonates_provider/coordonates_provider.dart';
-import 'package:polygon_painter/providers/lines_provider/lines_provider.dart';
+import 'package:polygon_painter/entity/polygon_entity/polygon_entity.dart';
+import 'package:polygon_painter/providers/polygon_provider/polygon_provider.dart';
 import 'package:polygon_painter/service/line_service.dart';
 
 class PainterPage extends ConsumerWidget {
@@ -12,9 +12,7 @@ class PainterPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final lineService = LineService();
 
-    final coordinates = ref.watch(coordinatesProvider);
-    final lines = ref.watch(linesProvider);
-    print(lines);
+    final polygon = ref.watch(polygonProvider);
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -29,8 +27,15 @@ class PainterPage extends ConsumerWidget {
                 height: constraints.constrainHeight(),
                 child: GestureDetector(
                   onTapDown: (details) {
+                    final isFinished = polygon.isFinished;
+
+                    if (isFinished) return;
+
+                    final coordinates = polygon.coordinates;
+                    final currentCoordinate = details.globalPosition;
+                    final lines = ref.read(polygonProvider.notifier).getLines();
+
                     if (lines.isNotEmpty) {
-                      final currentCoordinate = details.globalPosition;
                       final currentLine = LineEntity(
                         point1: coordinates.last,
                         point2: currentCoordinate,
@@ -51,57 +56,31 @@ class PainterPage extends ConsumerWidget {
                         currentPoint: currentCoordinate,
                       );
 
-                      if (isEnoughDegrees && !isOverlap) {
-                        ref.read(coordinatesProvider.notifier).addCoordinate(
+                      if (isClose) {
+                        lines.removeAt(0);
+                        final isOverlap = lineService.checkLinesOverlap(
+                          currentLine: currentLine,
+                          lines: lines,
+                        );
+                        if (!isOverlap) {
+                          ref.read(polygonProvider.notifier).addCoordinate(
+                                coordinates.first,
+                              );
+                        }
+                      } else if (isEnoughDegrees && !isOverlap) {
+                        ref.read(polygonProvider.notifier).addCoordinate(
                               currentCoordinate,
-                            );
-                      } else if (isClose) {
-                        ref.read(coordinatesProvider.notifier).addCoordinate(
-                              coordinates.first,
                             );
                       }
                     } else {
-                      ref.read(coordinatesProvider.notifier).addCoordinate(
-                            details.globalPosition,
+                      ref.read(polygonProvider.notifier).addCoordinate(
+                            currentCoordinate,
                           );
                     }
-                    // if (coordinates.isEmpty) {
-                    //   ref.read(coordinatesProvider.notifier).addCoordinate(
-                    //         details.globalPosition,
-                    //       );
-                    // }
-                    // else {
-                    //   final List<LineEntity> lines = [];
-                    //   for (var i = 0; i < coordinates.length; i++) {
-                    //     if (i != 0) {
-                    //       lines.add(LineEntity(
-                    //         point1: coordinates[i - 1],
-                    //         point2: coordinates[i],
-                    //       ));
-                    //     }
-                    //   }
-
-                    //   final currentLine = LineEntity(
-                    //     point1: coordinates.last,
-                    //     point2: details.globalPosition,
-                    //   );
-
-                    //   final isOverlap = lineService.checkLinesOverlap(
-                    //     currentLine: currentLine,
-                    //     lines: lines,
-                    //   );
-
-                    //   if (isOverlap == false) {
-                    //     setState(() {
-                    //       print(details.globalPosition);
-                    //       coordinates.add(details.globalPosition);
-                    //     });
-                    //   }
-                    // }
                   },
                   child: CustomPaint(
                     painter: PolygonPainter(
-                      coordinates: coordinates,
+                      polygon: polygon,
                     ),
                   ),
                 ),
@@ -140,30 +119,52 @@ class BackgroundPaint extends CustomPainter {
 class PolygonPainter extends CustomPainter {
   PolygonPainter({
     super.repaint,
-    required this.coordinates,
+    required this.polygon,
   });
 
-  final List<Offset> coordinates;
+  final PolygonEntity polygon;
   @override
   void paint(Canvas canvas, Size size) async {
-    final paint1 = Paint()..color = const Color.fromRGBO(253, 253, 253, 1);
-    final paint2 = Paint()..color = const Color.fromRGBO(0, 152, 238, 1);
-    final paint3 = Paint()
-      ..color = const Color.fromRGBO(0, 0, 0, 1)
-      ..strokeWidth = 8;
+    final List<Offset> coordinates = polygon.coordinates;
+    final isFinished = polygon.isFinished;
+
+    // рисуем фон когда многоугльник закончен
+    if (isFinished) {
+      final backgroundPaint = Paint()
+        ..style = PaintingStyle.fill
+        ..color = const Color.fromRGBO(253, 253, 253, 1);
+
+      final path = Path()..moveTo(coordinates.first.dx, coordinates.first.dy);
+      for (int i = 1; i < coordinates.length; i++) {
+        path.lineTo(coordinates[i].dx, coordinates[i].dy);
+      }
+      canvas.drawPath(path, backgroundPaint);
+    }
 
     // рисуем линии
+    final linePaint = Paint()
+      ..color = const Color.fromRGBO(0, 0, 0, 1)
+      ..strokeWidth = 8;
     for (int i = 0; i < coordinates.length; i++) {
       if (i != 0) {
-        canvas.drawLine(coordinates[i - 1], coordinates[i], paint3);
+        canvas.drawLine(coordinates[i - 1], coordinates[i], linePaint);
       }
     }
 
     // рисуем кружочки
+    final circlePaint1 = Paint()
+      ..color = isFinished
+          ? const Color.fromRGBO(125, 125, 125, 1)
+          : const Color.fromRGBO(253, 253, 253, 1);
+    final circlePaint2 = Paint()
+      ..color = isFinished
+          ? const Color.fromRGBO(253, 253, 253, 1)
+          : const Color.fromRGBO(0, 152, 238, 1);
+
     for (var coordinate in coordinates) {
       canvas
-        ..drawCircle(coordinate, 8, paint1)
-        ..drawCircle(coordinate, 6, paint2);
+        ..drawCircle(coordinate, 8, circlePaint1)
+        ..drawCircle(coordinate, 6, circlePaint2);
     }
   }
 

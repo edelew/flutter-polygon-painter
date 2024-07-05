@@ -1,25 +1,25 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'coordonates_provider.dart';
+part of 'polygon_provider.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$coordinatesHash() => r'1fdd578623aa5efb9a737973281a1fdea7ff5b2d';
+String _$polygonHash() => r'aed54c2f481632e2285885942918fb8ec2f6806e';
 
-/// See also [Coordinates].
-@ProviderFor(Coordinates)
-final coordinatesProvider =
-    AutoDisposeNotifierProvider<Coordinates, List<Offset>>.internal(
-  Coordinates.new,
-  name: r'coordinatesProvider',
+/// See also [Polygon].
+@ProviderFor(Polygon)
+final polygonProvider =
+    AutoDisposeNotifierProvider<Polygon, PolygonEntity>.internal(
+  Polygon.new,
+  name: r'polygonProvider',
   debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$coordinatesHash,
+      const bool.fromEnvironment('dart.vm.product') ? null : _$polygonHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );
 
-typedef _$Coordinates = AutoDisposeNotifier<List<Offset>>;
+typedef _$Polygon = AutoDisposeNotifier<PolygonEntity>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member

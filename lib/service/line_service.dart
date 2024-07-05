@@ -77,14 +77,15 @@ class LineService {
     required LineEntity currentLine,
     required List<LineEntity> lines,
   }) {
-    lines.removeLast();
-
-    for (var line in lines) {
+    for (int i = 0; i < lines.length - 1; i++) {
+      var line = lines[i];
       final isPositiveOffsetOverlap = _checkOverlapWithOffset(
         currentLine: currentLine,
         secondLine: line,
         offset: 12,
       );
+
+      if (isPositiveOffsetOverlap) return true;
 
       final isNegativeOffsetOverlap = _checkOverlapWithOffset(
         currentLine: currentLine,
@@ -92,11 +93,7 @@ class LineService {
         offset: -12,
       );
 
-      if (isPositiveOffsetOverlap || isNegativeOffsetOverlap) {
-        return true;
-      } else {
-        continue;
-      }
+      if (isNegativeOffsetOverlap) return true;
     }
 
     return false;
