@@ -66,9 +66,9 @@ class Polygon extends _$Polygon {
       final List<LineEntity> lines = [];
       for (var i = 0; i < length; i++) {
         if (i != 0) {
-          lines.add(LineEntity(
-            point1: coordinates[i - 1],
-            point2: coordinates[i],
+          lines.add(LineEntity.fromCoordinates(
+            coordinates1: coordinates[i - 1],
+            coordinates2: coordinates[i],
           ));
         }
       }

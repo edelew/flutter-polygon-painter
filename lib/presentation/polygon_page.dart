@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:polygon_painter/entity/line_entity.dart';
 import 'package:polygon_painter/presentation/painters/background_painters.dart';
 import 'package:polygon_painter/presentation/painters/polygon_painter.dart';
 import 'package:polygon_painter/providers/polygon_provider/polygon_provider.dart';
@@ -61,10 +60,8 @@ class PainterPage extends ConsumerWidget {
                         );
 
                     if (lines.isNotEmpty) {
-                      final currentLine = LineEntity(
-                        point1: coordinates.last,
-                        point2: currentCoordinate,
-                      );
+                      final currentLine =
+                          ref.read(polygonProvider.notifier).getLines().last;
 
                       final isEnoughDegrees = lineService.checkAngle(
                         firstLine: currentLine,
