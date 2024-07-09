@@ -57,12 +57,14 @@ class Polygon extends _$Polygon {
     }
   }
 
-  List<LineEntity> getLines() {
+  List<LineEntity> getLines({isExceptLast = false}) {
     final coordinates = state.coordinates;
+
+    final length = isExceptLast ? coordinates.length - 1 : coordinates.length;
 
     if (coordinates.isNotEmpty) {
       final List<LineEntity> lines = [];
-      for (var i = 0; i < coordinates.length; i++) {
+      for (var i = 0; i < length; i++) {
         if (i != 0) {
           lines.add(LineEntity(
             point1: coordinates[i - 1],
@@ -75,5 +77,14 @@ class Polygon extends _$Polygon {
     } else {
       return [];
     }
+  }
+
+  List<Offset> getCoordinatesExceptLast() {
+    final coordinates = state.coordinates;
+
+    List<Offset> coordinatesExceptLast =
+        coordinates.sublist(0, coordinates.length - 1);
+
+    return coordinatesExceptLast;
   }
 }
