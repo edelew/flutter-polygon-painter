@@ -26,56 +26,85 @@ class PainterPage extends ConsumerWidget {
                 width: constraints.constrainWidth(),
                 height: constraints.constrainHeight(),
                 child: GestureDetector(
-                  onTapDown: (details) {
+                  onPanStart: (details) {
                     final isFinished = polygon.isFinished;
-
                     if (isFinished) return;
 
-                    final coordinates = polygon.coordinates;
                     final currentCoordinate = details.globalPosition;
-                    final lines = ref.read(polygonProvider.notifier).getLines();
 
-                    if (lines.isNotEmpty) {
+                    ref.read(polygonProvider.notifier).addCoordinate(
+                          currentCoordinate,
+                        );
+                  },
+                  onPanUpdate: (details) {
+                    final isFinished = polygon.isFinished;
+                    if (isFinished) return;
+
+                    final currentCoordinate = details.globalPosition;
+
+                    ref.read(polygonProvider.notifier).updateLastCoordinate(
+                          currentCoordinate,
+                        );
+                  },
+                  onPanEnd: (details) {
+                    final isFinished = polygon.isFinished;
+                    if (isFinished) return;
+
+                    final currentCoordinate = polygon.coordinates.last;
+                    final otherCoordinates = polygon.coordinates.sublist(
+                      0,
+                      polygon.coordinates.length - 1,
+                    );
+                    final allLines =
+                        ref.read(polygonProvider.notifier).getLines();
+                    final otherLines = allLines.sublist(
+                      0,
+                      allLines.length - 1,
+                    );
+
+                    if (otherLines.isNotEmpty) {
                       final currentLine = LineEntity(
-                        point1: coordinates.last,
+                        point1: otherCoordinates.last,
                         point2: currentCoordinate,
                       );
 
                       final isEnoughDegrees = lineService.checkAngle(
                         firstLine: currentLine,
-                        secondLine: lines.last,
+                        secondLine: otherLines.last,
                       );
 
                       final isOverlap = lineService.checkLinesOverlap(
                         currentLine: currentLine,
-                        lines: lines,
+                        lines: otherLines,
                       );
 
                       final isClose = lineService.isNearFirstPoint(
-                        firstPoint: coordinates.first,
+                        firstPoint: otherCoordinates.first,
                         currentPoint: currentCoordinate,
                       );
 
                       if (isClose) {
-                        lines.removeAt(0);
+                        otherLines.removeAt(0);
                         final isOverlap = lineService.checkLinesOverlap(
                           currentLine: currentLine,
-                          lines: lines,
+                          lines: otherLines,
                         );
                         if (!isOverlap) {
-                          ref.read(polygonProvider.notifier).addCoordinate(
-                                coordinates.first,
+                          ref
+                              .read(polygonProvider.notifier)
+                              .updateLastCoordinate(
+                                otherCoordinates.first,
                               );
+                        } else {
+                          ref
+                              .read(polygonProvider.notifier)
+                              .removeLastCoordinate();
                         }
-                      } else if (isEnoughDegrees && !isOverlap) {
-                        ref.read(polygonProvider.notifier).addCoordinate(
-                              currentCoordinate,
-                            );
+                      } else if (!isEnoughDegrees || isOverlap) {
+                        ref
+                            .read(polygonProvider.notifier)
+                            .removeLastCoordinate();
                       }
-                    } else {
-                      ref.read(polygonProvider.notifier).addCoordinate(
-                            currentCoordinate,
-                          );
                     }
                   },
                   child: CustomPaint(
@@ -123,6 +152,7 @@ class PolygonPainter extends CustomPainter {
   });
 
   final PolygonEntity polygon;
+
   @override
   void paint(Canvas canvas, Size size) async {
     final List<Offset> coordinates = polygon.coordinates;

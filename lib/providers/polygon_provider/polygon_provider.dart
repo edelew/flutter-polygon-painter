@@ -27,6 +27,36 @@ class Polygon extends _$Polygon {
     }
   }
 
+  void removeLastCoordinate() {
+    final coordinates = state.coordinates;
+    if (coordinates.isNotEmpty) {
+      state = state.copyWith(
+        coordinates: coordinates.sublist(0, coordinates.length - 1),
+      );
+    }
+  }
+
+  void updateLastCoordinate(Offset newValue) {
+    final coordinates = state.coordinates;
+    if (coordinates.isNotEmpty) {
+      List<Offset> updatedCoordinates = List.from(coordinates);
+
+      updatedCoordinates[updatedCoordinates.length - 1] = newValue;
+
+      if (updatedCoordinates.length > 2 &&
+          updatedCoordinates.last == updatedCoordinates.first) {
+        state = PolygonEntity(
+          coordinates: updatedCoordinates,
+          isFinished: true,
+        );
+      } else {
+        state = state.copyWith(
+          coordinates: updatedCoordinates,
+        );
+      }
+    }
+  }
+
   List<LineEntity> getLines() {
     final coordinates = state.coordinates;
 
