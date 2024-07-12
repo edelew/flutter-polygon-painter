@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:polygon_painter/config/app_colors.dart';
 import 'package:polygon_painter/entity/polygon_entity/polygon_entity.dart';
 
 class PolygonPainter extends CustomPainter {
@@ -18,7 +19,7 @@ class PolygonPainter extends CustomPainter {
     if (isFinished) {
       final backgroundPaint = Paint()
         ..style = PaintingStyle.fill
-        ..color = const Color.fromRGBO(253, 253, 253, 1);
+        ..color = AppColors.white;
 
       final path = Path()..moveTo(coordinates.first.dx, coordinates.first.dy);
       for (int i = 1; i < coordinates.length; i++) {
@@ -29,7 +30,7 @@ class PolygonPainter extends CustomPainter {
 
     // рисуем линии
     final linePaint = Paint()
-      ..color = const Color.fromRGBO(0, 0, 0, 1)
+      ..color = AppColors.black
       ..strokeWidth = 8;
     for (int i = 0; i < coordinates.length; i++) {
       if (i != 0) {
@@ -39,13 +40,9 @@ class PolygonPainter extends CustomPainter {
 
     // рисуем кружочки
     final circlePaint1 = Paint()
-      ..color = isFinished
-          ? const Color.fromRGBO(125, 125, 125, 1)
-          : const Color.fromRGBO(253, 253, 253, 1);
+      ..color = isFinished ? AppColors.darkGrey : AppColors.white;
     final circlePaint2 = Paint()
-      ..color = isFinished
-          ? const Color.fromRGBO(253, 253, 253, 1)
-          : const Color.fromRGBO(0, 152, 238, 1);
+      ..color = isFinished ? AppColors.white : AppColors.blue;
 
     for (var coordinate in coordinates) {
       canvas

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:polygon_painter/config/app_colors.dart';
 import 'package:polygon_painter/presentation/painters/background_painters.dart';
 import 'package:polygon_painter/presentation/painters/polygon_painter.dart';
 import 'package:polygon_painter/providers/polygon_provider/polygon_provider.dart';
@@ -17,7 +18,11 @@ class PainterPage extends ConsumerWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
-        backgroundColor: const Color.fromRGBO(227, 227, 227, 1),
+        appBar: AppBar(
+          backgroundColor: AppColors.white,
+          toolbarHeight: 0,
+        ),
+        backgroundColor: AppColors.lightGrey,
         body: CustomPaint(
           painter: BackgroundPaint(),
           child: LayoutBuilder(
