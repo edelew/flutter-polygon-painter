@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:polygon_painter/config/app_colors.dart';
+import 'package:polygon_painter/entity/polygon_entity/polygon_entity.dart';
 import 'package:polygon_painter/presentation/painters/background_painters.dart';
 import 'package:polygon_painter/presentation/painters/polygon_painter.dart';
 import 'package:polygon_painter/presentation/widgets/control_panel.dart';
@@ -41,81 +42,24 @@ class _PainterPageState extends ConsumerState<PainterPage> {
                     height: constraints.constrainHeight(),
                     child: GestureDetector(
                       // первое нажатие
-                      onPanStart: (details) {
-                        if (polygon.isFinished) return;
-
-                        final currentCoordinate = details.localPosition;
-
-                        polygonNotifier.addCoordinate(
-                          currentCoordinate,
-                        );
-                      },
+                      onPanStart: (details) => onPanStart(
+                        details: details,
+                        polygon: polygon,
+                        polygonNotifier: polygonNotifier,
+                      ),
                       // удержание
-                      onPanUpdate: (details) {
-                        if (polygon.isFinished) return;
-
-                        final currentCoordinate = details.localPosition;
-
-                        polygonNotifier.updateLastCoordinate(
-                          currentCoordinate,
-                        );
-                      },
+                      onPanUpdate: (details) => onPanUpdate(
+                        details: details,
+                        polygon: polygon,
+                        polygonNotifier: polygonNotifier,
+                      ),
                       // после нажатия
-                      onPanEnd: (details) {
-                        if (polygon.isFinished) return;
-
-                        final currentCoordinate = polygon.coordinates.last;
-                        final coordinates =
-                            polygonNotifier.getCoordinatesExceptLast();
-
-                        final lines = polygonNotifier.getLines(
-                          isExceptLast: true,
-                        );
-
-                        if (lines.isNotEmpty) {
-                          final currentLine = polygonNotifier.getLines().last;
-
-                          final isEnoughDegrees = lineService.checkAngle(
-                            firstLine: currentLine,
-                            secondLine: lines.last,
-                          );
-
-                          final isOverlap = lineService.checkLinesOverlap(
-                            currentLine: currentLine,
-                            lines: lines,
-                          );
-
-                          final isClose = lineService.isNearFirstPoint(
-                            firstPoint: coordinates.first,
-                            currentPoint: currentCoordinate,
-                          );
-
-                          if (isClose) {
-                            lines.removeAt(0);
-                            final isOverlap = lineService.checkLinesOverlap(
-                              currentLine: currentLine,
-                              lines: lines,
-                            );
-                            if (!isOverlap) {
-                              polygonNotifier.updateLastCoordinate(
-                                coordinates.first,
-                              );
-
-                              return;
-                            } else {
-                              polygonNotifier.removeLastCoordinate();
-
-                              return;
-                            }
-                          } else if (!isEnoughDegrees || isOverlap) {
-                            polygonNotifier.removeLastCoordinate();
-
-                            return;
-                          }
-                        }
-
-                        polygonNotifier.addToHistory(polygon);
-                      },
+                      onPanEnd: (details) => onPanEnd(
+                        details: details,
+                        polygon: polygon,
+                        polygonNotifier: polygonNotifier,
+                        lineService: lineService,
+                      ),
                       child: CustomPaint(
                         painter: PolygonPainter(
                           polygon: polygon,
@@ -140,5 +84,93 @@ class _PainterPageState extends ConsumerState<PainterPage> {
         ),
       ),
     );
+  }
+
+  void onPanStart({
+    required DragStartDetails details,
+    required PolygonEntity polygon,
+    required Polygon polygonNotifier,
+  }) {
+    if (polygon.isFinished) return;
+
+    final currentCoordinate = details.localPosition;
+
+    polygonNotifier.addCoordinate(
+      currentCoordinate,
+    );
+  }
+
+  void onPanUpdate({
+    required DragUpdateDetails details,
+    required PolygonEntity polygon,
+    required Polygon polygonNotifier,
+  }) {
+    if (polygon.isFinished) return;
+
+    final currentCoordinate = details.localPosition;
+
+    polygonNotifier.updateLastCoordinate(
+      currentCoordinate,
+    );
+  }
+
+  void onPanEnd({
+    required DragEndDetails details,
+    required PolygonEntity polygon,
+    required Polygon polygonNotifier,
+    required LineService lineService,
+  }) {
+    if (polygon.isFinished) return;
+
+    final currentCoordinate = polygon.coordinates.last;
+    final coordinates = polygonNotifier.getCoordinatesExceptLast();
+
+    final lines = polygonNotifier.getLines(
+      isExceptLast: true,
+    );
+
+    if (lines.isNotEmpty) {
+      final currentLine = polygonNotifier.getLines().last;
+
+      final isEnoughDegrees = lineService.checkAngle(
+        firstLine: currentLine,
+        secondLine: lines.last,
+      );
+
+      final isOverlap = lineService.checkLinesOverlap(
+        currentLine: currentLine,
+        lines: lines,
+      );
+
+      final isClose = lineService.isNearFirstPoint(
+        firstPoint: coordinates.first,
+        currentPoint: currentCoordinate,
+      );
+
+      if (isClose) {
+        lines.removeAt(0);
+        final isOverlap = lineService.checkLinesOverlap(
+          currentLine: currentLine,
+          lines: lines,
+        );
+        if (!isOverlap) {
+          polygonNotifier.updateLastCoordinate(
+            coordinates.first,
+          );
+
+          return;
+        } else {
+          polygonNotifier.removeLastCoordinate();
+
+          return;
+        }
+      } else if (!isEnoughDegrees || isOverlap) {
+        polygonNotifier.removeLastCoordinate();
+
+        return;
+      }
+    }
+
+    polygonNotifier.addToHistory(polygon);
   }
 }
