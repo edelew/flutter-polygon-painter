@@ -7,14 +7,20 @@ import 'package:polygon_painter/presentation/widgets/control_panel.dart';
 import 'package:polygon_painter/providers/polygon_provider/polygon_provider.dart';
 import 'package:polygon_painter/service/line_service.dart';
 
-class PainterPage extends ConsumerWidget {
+class PainterPage extends ConsumerStatefulWidget {
   const PainterPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PainterPage> createState() => _PainterPageState();
+}
+
+class _PainterPageState extends ConsumerState<PainterPage> {
+  @override
+  Widget build(BuildContext context) {
     final lineService = LineService();
 
     final polygon = ref.watch(polygonProvider);
+    final polygonNotifier = ref.read(polygonProvider.notifier);
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -28,14 +34,6 @@ class PainterPage extends ConsumerWidget {
           painter: BackgroundPaint(),
           child: Stack(
             children: [
-              // const Padding(
-              //   padding: EdgeInsets.only(
-              //     top: 12,
-              //     left: 8,
-              //     right: 16,
-              //   ),
-              //   child: ControlPanelWidget(),
-              // ),
               LayoutBuilder(
                 builder: (context, constraints) {
                   return SizedBox(
@@ -48,9 +46,9 @@ class PainterPage extends ConsumerWidget {
 
                         final currentCoordinate = details.localPosition;
 
-                        ref.read(polygonProvider.notifier).addCoordinate(
-                              currentCoordinate,
-                            );
+                        polygonNotifier.addCoordinate(
+                          currentCoordinate,
+                        );
                       },
                       // удержание
                       onPanUpdate: (details) {
@@ -58,29 +56,24 @@ class PainterPage extends ConsumerWidget {
 
                         final currentCoordinate = details.localPosition;
 
-                        ref.read(polygonProvider.notifier).updateLastCoordinate(
-                              currentCoordinate,
-                            );
+                        polygonNotifier.updateLastCoordinate(
+                          currentCoordinate,
+                        );
                       },
                       // после нажатия
                       onPanEnd: (details) {
                         if (polygon.isFinished) return;
 
                         final currentCoordinate = polygon.coordinates.last;
-                        final coordinates = ref
-                            .read(polygonProvider.notifier)
-                            .getCoordinatesExceptLast();
+                        final coordinates =
+                            polygonNotifier.getCoordinatesExceptLast();
 
-                        final lines =
-                            ref.read(polygonProvider.notifier).getLines(
-                                  isExceptLast: true,
-                                );
+                        final lines = polygonNotifier.getLines(
+                          isExceptLast: true,
+                        );
 
                         if (lines.isNotEmpty) {
-                          final currentLine = ref
-                              .read(polygonProvider.notifier)
-                              .getLines()
-                              .last;
+                          final currentLine = polygonNotifier.getLines().last;
 
                           final isEnoughDegrees = lineService.checkAngle(
                             firstLine: currentLine,
@@ -104,22 +97,24 @@ class PainterPage extends ConsumerWidget {
                               lines: lines,
                             );
                             if (!isOverlap) {
-                              ref
-                                  .read(polygonProvider.notifier)
-                                  .updateLastCoordinate(
-                                    coordinates.first,
-                                  );
+                              polygonNotifier.updateLastCoordinate(
+                                coordinates.first,
+                              );
+
+                              return;
                             } else {
-                              ref
-                                  .read(polygonProvider.notifier)
-                                  .removeLastCoordinate();
+                              polygonNotifier.removeLastCoordinate();
+
+                              return;
                             }
                           } else if (!isEnoughDegrees || isOverlap) {
-                            ref
-                                .read(polygonProvider.notifier)
-                                .removeLastCoordinate();
+                            polygonNotifier.removeLastCoordinate();
+
+                            return;
                           }
                         }
+
+                        polygonNotifier.addToHistory(polygon);
                       },
                       child: CustomPaint(
                         painter: PolygonPainter(
@@ -130,13 +125,15 @@ class PainterPage extends ConsumerWidget {
                   );
                 },
               ),
-              const Padding(
-                padding: EdgeInsets.only(
+              Padding(
+                padding: const EdgeInsets.only(
                   top: 12,
                   left: 8,
                   right: 16,
                 ),
-                child: ControlPanelWidget(),
+                child: ControlPanelWidget(
+                  polygonNotifier: polygonNotifier,
+                ),
               ),
             ],
           ),

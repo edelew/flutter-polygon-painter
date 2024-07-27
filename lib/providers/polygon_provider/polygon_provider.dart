@@ -1,30 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:polygon_painter/entity/line_entity.dart';
 import 'package:polygon_painter/entity/polygon_entity/polygon_entity.dart';
+import 'package:polygon_painter/providers/history_mixin.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'polygon_provider.g.dart';
 
 @riverpod
-class Polygon extends _$Polygon {
+class Polygon extends _$Polygon with HistoryMixin {
   @override
   PolygonEntity build() {
     return PolygonEntity(coordinates: []);
   }
 
+  @override
+  bool updateShouldNotify(previous, next) {
+    return true;
+  }
+
   void addCoordinate(Offset offset) {
     final coordinates = [...state.coordinates, offset];
 
-    if (coordinates.length > 2 && coordinates.last == coordinates.first) {
-      state = PolygonEntity(
-        coordinates: coordinates,
-        isFinished: true,
-      );
-    } else {
-      state = state.copyWith(
-        coordinates: coordinates,
-      );
-    }
+    state = state.copyWith(
+      coordinates: coordinates,
+    );
   }
 
   void removeLastCoordinate() {
@@ -49,6 +48,7 @@ class Polygon extends _$Polygon {
           coordinates: updatedCoordinates,
           isFinished: true,
         );
+        addToHistory(state);
       } else {
         state = state.copyWith(
           coordinates: updatedCoordinates,

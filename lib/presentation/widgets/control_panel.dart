@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:polygon_painter/config/app_colors.dart';
 import 'package:polygon_painter/config/app_icons.dart';
+import 'package:polygon_painter/providers/polygon_provider/polygon_provider.dart';
 
-class ControlPanelWidget extends StatelessWidget {
-  const ControlPanelWidget({super.key});
+class ControlPanelWidget extends ConsumerWidget {
+  const ControlPanelWidget({
+    required this.polygonNotifier,
+    super.key,
+  });
+
+  final Polygon polygonNotifier;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -21,12 +28,17 @@ class ControlPanelWidget extends StatelessWidget {
             ),
             child: Row(
               children: [
-                SvgPicture.asset(
-                  height: 20,
-                  AppIcons.undo,
-                  colorFilter: const ColorFilter.mode(
-                    AppColors.lightGrey,
-                    BlendMode.srcIn,
+                GestureDetector(
+                  onTap: () => polygonNotifier.undo(),
+                  child: SvgPicture.asset(
+                    height: 20,
+                    AppIcons.undo,
+                    colorFilter: ColorFilter.mode(
+                      polygonNotifier.canUndo
+                          ? AppColors.darkGrey
+                          : AppColors.lightGrey,
+                      BlendMode.srcIn,
+                    ),
                   ),
                 ),
                 const Padding(
@@ -41,12 +53,17 @@ class ControlPanelWidget extends StatelessWidget {
                     ),
                   ),
                 ),
-                SvgPicture.asset(
-                  height: 20,
-                  AppIcons.redo,
-                  colorFilter: const ColorFilter.mode(
-                    AppColors.lightGrey,
-                    BlendMode.srcIn,
+                GestureDetector(
+                  onTap: () => polygonNotifier.redo(),
+                  child: SvgPicture.asset(
+                    height: 20,
+                    AppIcons.redo,
+                    colorFilter: ColorFilter.mode(
+                      polygonNotifier.canRedo
+                          ? AppColors.darkGrey
+                          : AppColors.lightGrey,
+                      BlendMode.srcIn,
+                    ),
                   ),
                 ),
               ],
